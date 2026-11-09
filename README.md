@@ -1,61 +1,51 @@
-# Web Scraping de Geladeiras em Leilão (Kwara)
+# Web Scraping de Leilões (Kwara) — Terminal & Interface Web
 
-Este projeto consiste em um script de automação e raspagem de dados (web scraping) desenvolvido em Python utilizando **Playwright** para extrair informações sobre geladeiras em leilão no site [Kwara](https://www.kwara.com.br/).
+Este projeto consiste em uma ferramenta de raspagem de dados (*web scraping*) em Python para pesquisar **qualquer item** em leilão no site [Kwara](https://www.kwara.com.br/), percorrer todas as páginas de resultados automaticamente e exportar os dados estruturados para uma planilha Excel (`.xlsx`).
 
-## 📌 Objetivo
-Extrair automaticamente uma lista de produtos (geladeiras) contendo:
-- Nome do item (título do lote)
-- Valor atual do lance (preço atual exibido)
-
-E exportar os dados estruturados para um arquivo Excel (`.xlsx`).
+Você pode utilizá-lo de **duas formas**:
+1. **Pelo Terminal (CLI)**: digitando o nome do produto ou passando via argumento de linha de comando.
+2. **Pela Interface Web (`kwara.search`)**: uma página HTML estilo Google Search com design minimalista moderno (inspirado no sistema **Vercel Geist / Linear / shadcn**, livre de clichês visuais de IA), exibindo fotos reais dos lotes, métricas de preços, filtros por estado (UF), ordenação, visualização em Grade ou Tabela e download imediato do Excel.
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
-- **Python 3**
-- **Playwright** (automação do navegador para lidar com páginas dinâmicas/SPA)
-- **Pandas** & **Openpyxl** (manipulação de dados e exportação para Excel)
-
----
-
-## 🔍 Resumo do Processo de Desenvolvimento
-
-### 1. Análise da Página e Identificação dos Seletores
-Como o site da Kwara é uma **Single Page Application (SPA)** renderizada dinamicamente com JavaScript, foi necessário usar automação de navegador (Playwright) em vez de uma requisição estática com BeautifulSoup.
-
-Durante a análise do DOM, os seguintes seletores CSS foram mapeados:
-- **Nome do Produto**: Inicialmente tentou-se buscar apenas `a[title="Clique para abrir detalhes"] p`, porém, alguns lotes retornavam o número do lote (ex: "Lote 012") ao invés do nome da geladeira. O seletor foi corrigido e refinado para:
-  `a[title="Clique para abrir detalhes"] p.font-semibold`
-  Isso garante que apenas o nome do produto seja extraído, pois ele possui a classe CSS `font-semibold`.
-- **Preço Atual**: `.text-black.text-sm.font-bold`
-- **Paginação**: Controlada diretamente incrementando o parâmetro `currentPage` na URL da busca, o que se mostrou mais robusto e rápido do que clicar nos botões de paginação.
-
-### 2. Fluxo da Automação
-1. O script inicia o navegador Chromium (headless) e define um `User-Agent` para evitar bloqueios.
-2. Faz a navegação pela URL incrementando a página (`currentPage=1`, `currentPage=2`, etc.).
-3. Aguarda o carregamento dinâmico dos elementos na página usando `wait_for_selector`.
-4. Executa um script JS no contexto da página para extrair os nomes e lances dos lotes.
-5. Se a página não retornar nenhum item (fim do leilão ou sem mais resultados), o loop de paginação é interrompido.
-6. Os dados são salvos em uma lista de dicionários.
-7. O Pandas lê a lista de dados e gera o arquivo `geladeiras_leilao.xlsx`.
+## 📌 Funcionalidades
+- **Busca livre por qualquer produto**: Pesquise `"geladeira"`, `"notebook"`, `"ar condicionado"`, `"iphone"`, `"caminhão"`, etc.
+- **Extração Híbrida Moderna (Next.js SSR JSON + Playwright)**:
+  - **Modo Rápido SSR (Padrão)**: Extrai o JSON estruturado (`searchResult`) diretamente do payload *React Server Components* (`self.__next_f`) embutido no HTML da Kwara. Extrai múltiplas páginas em **menos de 2 segundos**.
+  - **Modo Playwright (Fallback)**: Caso a estrutura SSR mude (ou usando a flag `--playwright`), o script aciona automaticamente o navegador headless Chromium.
+- **Exportação Completa para Excel (`.xlsx`)**:
+  - `Nome do produto`, `Preço atual`, `Valor numérico (R$)`, `Lances`, `Visitas`, `Estado (UF)`, `Encerramento` e `Link do lote`.
 
 ---
 
 ## 🚀 Como Executar o Projeto
 
-### Prerrequisitos
-Instale as dependências necessárias:
-
+### Pré-requisitos
 ```bash
 pip install pandas openpyxl playwright
 playwright install chromium
 ```
 
-### Executando o Scraper
-Execute o arquivo principal:
+### Opção 1: Interface Web Moderna (Estilo Google Search)
+Inicie o servidor web local (ele abrirá automaticamente no navegador em `http://localhost:8000`):
 
 ```bash
-python kwara_scraper.py
+python kwara_scraper.py --web
 ```
+*(Ou execute diretamente `python web_app.py`, ou digite `web` quando iniciar `python kwara_scraper.py`).*
 
-Após a execução, o arquivo `geladeiras_leilao.xlsx` será criado no diretório raiz contendo todos os dados extraídos.
+Na página web:
+- Digite qualquer produto na barra central e pressione **Enter** (atalho `/` foca na busca).
+- A barra desliza para o topo estilo Google, varre todas as páginas da Kwara, **já salva o arquivo `<item>_leilao.xlsx` na pasta do projeto** e libera o botão **Baixar Excel (.xlsx)** direto pelo navegador.
+- Filtre por **Estado (UF)**, ordene por **Menor/Maior Preço** ou **Mais Lances**, e alterne entre **Grade com Fotos** e **Tabela Densa**.
+
+### Opção 2: Uso pelo Terminal (CLI)
+```bash
+# Modo interativo (pergunta o item no terminal)
+python kwara_scraper.py
+
+# Passando o item direto no comando
+python kwara_scraper.py geladeira
+python kwara_scraper.py "ar condicionado"
+python kwara_scraper.py notebook -o meus_notebooks.xlsx
+```

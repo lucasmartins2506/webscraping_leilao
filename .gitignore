@@ -4,6 +4,9 @@ card_texts.txt
 extract_full_card.py
 get_html.py
 
+# Arquivos de dados gerados
+*.xlsx
+
 # Python
 __pycache__/
 *.pyc
