@@ -121,3 +121,4 @@ Antes de finalizar qualquer tela, o agente deve verificar:
 - [ ] Há algum card dentro de outro card? *(Se sim, achate a hierarquia usando divisórias de `1px`)*.
 - [ ] Os botões e inputs têm entre `34px` e `40px` de altura com bordas de `6px`?
 - [ ] O contraste de leitura funciona perfeitamente tanto no tema claro quanto no escuro?
+
